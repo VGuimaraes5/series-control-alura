@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\SeasonsController;
-use App\Http\Controllers\SeriesController;
-use GuzzleHttp\Promise\Create;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,11 +14,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('/series');
+    return view('welcome');
 });
 
-Route::resource('/series', SeriesController::class)
-    ->except(['show']);
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-
-Route::get('/series/{series}/seasons', [SeasonsController::class, 'index'])->name('seasons.index');
+require __DIR__.'/auth.php';
