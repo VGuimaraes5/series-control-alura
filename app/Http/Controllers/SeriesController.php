@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\Authenticate;
+use App\Models\User;
 use App\Models\Series;
+use App\Mail\SeriesCreated;
 use Illuminate\Routing\Redirector;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use App\Repositories\SeriesRepository;
 use App\Http\Requests\SeriesFormRequest;
+use Carbon\Carbon;
 
 class SeriesController extends Controller
 {
@@ -35,6 +38,18 @@ class SeriesController extends Controller
     public function store(SeriesFormRequest $request): Redirector|RedirectResponse
     {
         $series = $this->SeriesRepository->add($request);
+
+        foreach (User::all() as $index => $user) {
+            $email = new SeriesCreated(
+                $series->name,
+                $series->id,
+                $request->seasonsQtt,
+                $request->episodesPerSeason
+            );
+
+            $when = now()->addSeconds(5 * $index);
+            Mail::to($user)->later($when, $email);
+        }
 
         return to_route('series.index')
             ->with('success.message', "Série {$series->name} adicionada com sucesso");
