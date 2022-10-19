@@ -11,17 +11,17 @@ class Series extends Model
 {
     use HasFactory;
 
-    protected $fillable = ["name"];
-
-    public function seasons(): HasMany
-    {
-        return $this->hasMany(Season::class);
-    }
+    protected $fillable = ["name", "cover"];
 
     protected static function booted(): void
     {
         self::addGlobalScope("ordered", function (Builder $query) {
             $query->orderBy('name');
         });
+    }
+
+    public function seasons(): HasMany
+    {
+        return $this->hasMany(Season::class);
     }
 }

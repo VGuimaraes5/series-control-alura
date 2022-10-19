@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Events\SeriesCreated as EventsSeriesCreated;
 use App\Models\Series;
-use App\Mail\SeriesCreated;
 use Illuminate\Routing\Redirector;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use App\Repositories\SeriesRepository;
 use App\Http\Requests\SeriesFormRequest;
-use Carbon\Carbon;
 
 class SeriesController extends Controller
 {
@@ -37,19 +34,18 @@ class SeriesController extends Controller
 
     public function store(SeriesFormRequest $request): Redirector|RedirectResponse
     {
+        $request->coverPath = $request->hasFile('cover')
+            ? $request->file("cover")->store('series_cover', 'public')
+            : null;
+
         $series = $this->SeriesRepository->add($request);
 
-        foreach (User::all() as $index => $user) {
-            $email = new SeriesCreated(
-                $series->name,
-                $series->id,
-                $request->seasonsQtt,
-                $request->episodesPerSeason
-            );
-
-            $when = now()->addSeconds(5 * $index);
-            Mail::to($user)->later($when, $email);
-        }
+        EventsSeriesCreated::dispatch(
+            $series->name,
+            $series->id,
+            $request->seasonsQtt,
+            $request->episodesPerSeason
+        );
 
         return to_route('series.index')
             ->with('success.message', "Série {$series->name} adicionada com sucesso");
