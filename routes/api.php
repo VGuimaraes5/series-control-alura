@@ -31,3 +31,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/series/{series}/episodes', [EpisodesController::class, 'getSeriesEpisodes']);
     Route::patch('/episodes/{episode}', [EpisodesController::class, 'update']);
 });
+
+//teste git
